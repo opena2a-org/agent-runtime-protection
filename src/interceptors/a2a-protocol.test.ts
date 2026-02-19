@@ -7,8 +7,10 @@ describe('A2AProtocolInterceptor', () => {
   let engine: EventEngine;
   let emittedEvents: ARPEvent[];
 
-  function createInterceptor(trustedAgents?: string[]): A2AProtocolInterceptor {
-    return new A2AProtocolInterceptor(engine, trustedAgents);
+  async function createInterceptor(trustedAgents?: string[]): Promise<A2AProtocolInterceptor> {
+    const interceptor = new A2AProtocolInterceptor(engine, trustedAgents);
+    await interceptor.start();
+    return interceptor;
   }
 
   beforeEach(() => {
@@ -18,8 +20,8 @@ describe('A2AProtocolInterceptor', () => {
   });
 
   describe('scanMessage', () => {
-    it('detects identity spoofing', () => {
-      const interceptor = createInterceptor();
+    it('detects identity spoofing', async () => {
+      const interceptor = await createInterceptor();
       const result = interceptor.scanMessage(
         'unknown-agent',
         'worker-agent',
@@ -29,8 +31,8 @@ describe('A2AProtocolInterceptor', () => {
       expect(emittedEvents.some(e => e.data.patternId === 'A2A-001')).toBe(true);
     });
 
-    it('detects delegation abuse', () => {
-      const interceptor = createInterceptor();
+    it('detects delegation abuse', async () => {
+      const interceptor = await createInterceptor();
       const result = interceptor.scanMessage(
         'agent-a',
         'agent-b',
@@ -40,8 +42,8 @@ describe('A2AProtocolInterceptor', () => {
       expect(emittedEvents.some(e => e.data.patternId === 'A2A-002')).toBe(true);
     });
 
-    it('detects prompt injection embedded in A2A messages', () => {
-      const interceptor = createInterceptor();
+    it('detects prompt injection embedded in A2A messages', async () => {
+      const interceptor = await createInterceptor();
       const result = interceptor.scanMessage(
         'agent-a',
         'agent-b',
@@ -51,8 +53,8 @@ describe('A2AProtocolInterceptor', () => {
       expect(emittedEvents.some(e => e.data.patternCategory === 'prompt-injection-via-a2a')).toBe(true);
     });
 
-    it('flags untrusted agents', () => {
-      const interceptor = createInterceptor(['trusted-agent-1', 'trusted-agent-2']);
+    it('flags untrusted agents', async () => {
+      const interceptor = await createInterceptor(['trusted-agent-1', 'trusted-agent-2']);
       const result = interceptor.scanMessage(
         'unknown-agent',
         'my-agent',
@@ -62,8 +64,8 @@ describe('A2AProtocolInterceptor', () => {
       expect(emittedEvents[0].data.reason).toBe('untrusted-agent');
     });
 
-    it('allows trusted agents', () => {
-      const interceptor = createInterceptor(['trusted-agent-1']);
+    it('allows trusted agents', async () => {
+      const interceptor = await createInterceptor(['trusted-agent-1']);
       const result = interceptor.scanMessage(
         'trusted-agent-1',
         'my-agent',
@@ -72,8 +74,8 @@ describe('A2AProtocolInterceptor', () => {
       expect(result.detected).toBe(false);
     });
 
-    it('passes clean A2A messages', () => {
-      const interceptor = createInterceptor();
+    it('passes clean A2A messages', async () => {
+      const interceptor = await createInterceptor();
       const result = interceptor.scanMessage(
         'agent-a',
         'agent-b',
@@ -83,8 +85,8 @@ describe('A2AProtocolInterceptor', () => {
       expect(emittedEvents).toHaveLength(0);
     });
 
-    it('skips trust check when no trusted list configured', () => {
-      const interceptor = createInterceptor();
+    it('skips trust check when no trusted list configured', async () => {
+      const interceptor = await createInterceptor();
       const result = interceptor.scanMessage(
         'any-agent',
         'my-agent',
@@ -93,8 +95,8 @@ describe('A2AProtocolInterceptor', () => {
       expect(result.detected).toBe(false);
     });
 
-    it('detects combined spoofing and injection', () => {
-      const interceptor = createInterceptor(['trusted-only']);
+    it('detects combined spoofing and injection', async () => {
+      const interceptor = await createInterceptor(['trusted-only']);
       const result = interceptor.scanMessage(
         'evil-agent',
         'my-agent',
@@ -108,7 +110,7 @@ describe('A2AProtocolInterceptor', () => {
 
   describe('Monitor interface', () => {
     it('starts and stops correctly', async () => {
-      const interceptor = createInterceptor();
+      const interceptor = new A2AProtocolInterceptor(engine);
       expect(interceptor.isRunning()).toBe(false);
       await interceptor.start();
       expect(interceptor.isRunning()).toBe(true);
@@ -117,7 +119,7 @@ describe('A2AProtocolInterceptor', () => {
     });
 
     it('reports correct type', () => {
-      const interceptor = createInterceptor();
+      const interceptor = new A2AProtocolInterceptor(engine);
       expect(interceptor.type).toBe('a2a-protocol');
     });
   });

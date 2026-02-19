@@ -7,8 +7,10 @@ describe('MCPProtocolInterceptor', () => {
   let engine: EventEngine;
   let emittedEvents: ARPEvent[];
 
-  function createInterceptor(allowedTools?: string[]): MCPProtocolInterceptor {
-    return new MCPProtocolInterceptor(engine, allowedTools);
+  async function createInterceptor(allowedTools?: string[]): Promise<MCPProtocolInterceptor> {
+    const interceptor = new MCPProtocolInterceptor(engine, allowedTools);
+    await interceptor.start();
+    return interceptor;
   }
 
   beforeEach(() => {
@@ -18,8 +20,8 @@ describe('MCPProtocolInterceptor', () => {
   });
 
   describe('scanToolCall', () => {
-    it('detects path traversal in tool args', () => {
-      const interceptor = createInterceptor();
+    it('detects path traversal in tool args', async () => {
+      const interceptor = await createInterceptor();
       const result = interceptor.scanToolCall('readFile', {
         path: '../../etc/passwd',
       });
@@ -28,8 +30,8 @@ describe('MCPProtocolInterceptor', () => {
       expect(emittedEvents[0].data.patternId).toBe('MCP-001');
     });
 
-    it('detects command injection in tool args', () => {
-      const interceptor = createInterceptor();
+    it('detects command injection in tool args', async () => {
+      const interceptor = await createInterceptor();
       const result = interceptor.scanToolCall('execute', {
         command: 'ls; cat /etc/passwd',
       });
@@ -37,8 +39,8 @@ describe('MCPProtocolInterceptor', () => {
       expect(emittedEvents[0].data.patternId).toBe('MCP-002');
     });
 
-    it('detects SSRF in tool args', () => {
-      const interceptor = createInterceptor();
+    it('detects SSRF in tool args', async () => {
+      const interceptor = await createInterceptor();
       const result = interceptor.scanToolCall('fetch', {
         url: 'http://169.254.169.254/latest/meta-data/',
       });
@@ -46,16 +48,16 @@ describe('MCPProtocolInterceptor', () => {
       expect(emittedEvents[0].data.patternId).toBe('MCP-003');
     });
 
-    it('detects nested path traversal', () => {
-      const interceptor = createInterceptor();
+    it('detects nested path traversal', async () => {
+      const interceptor = await createInterceptor();
       const result = interceptor.scanToolCall('readFile', {
         config: { basePath: '/app', file: '../../../etc/shadow' },
       });
       expect(result.detected).toBe(true);
     });
 
-    it('passes clean tool calls', () => {
-      const interceptor = createInterceptor();
+    it('passes clean tool calls', async () => {
+      const interceptor = await createInterceptor();
       const result = interceptor.scanToolCall('readFile', {
         path: '/home/user/documents/report.txt',
       });
@@ -63,8 +65,8 @@ describe('MCPProtocolInterceptor', () => {
       expect(emittedEvents).toHaveLength(0);
     });
 
-    it('enforces tool allowlist', () => {
-      const interceptor = createInterceptor(['readFile', 'writeFile']);
+    it('enforces tool allowlist', async () => {
+      const interceptor = await createInterceptor(['readFile', 'writeFile']);
       const result = interceptor.scanToolCall('executeShell', {
         command: 'whoami',
       });
@@ -72,16 +74,16 @@ describe('MCPProtocolInterceptor', () => {
       expect(emittedEvents[0].data.reason).toBe('not-in-allowlist');
     });
 
-    it('allows tools on the allowlist', () => {
-      const interceptor = createInterceptor(['readFile', 'writeFile']);
+    it('allows tools on the allowlist', async () => {
+      const interceptor = await createInterceptor(['readFile', 'writeFile']);
       const result = interceptor.scanToolCall('readFile', {
         path: '/app/data/config.json',
       });
       expect(result.detected).toBe(false);
     });
 
-    it('skips allowlist check when no allowlist configured', () => {
-      const interceptor = createInterceptor();
+    it('skips allowlist check when no allowlist configured', async () => {
+      const interceptor = await createInterceptor();
       const result = interceptor.scanToolCall('anyTool', {
         arg: 'safe value',
       });
@@ -91,7 +93,7 @@ describe('MCPProtocolInterceptor', () => {
 
   describe('Monitor interface', () => {
     it('starts and stops correctly', async () => {
-      const interceptor = createInterceptor();
+      const interceptor = new MCPProtocolInterceptor(engine);
       expect(interceptor.isRunning()).toBe(false);
       await interceptor.start();
       expect(interceptor.isRunning()).toBe(true);
@@ -100,7 +102,7 @@ describe('MCPProtocolInterceptor', () => {
     });
 
     it('reports correct type', () => {
-      const interceptor = createInterceptor();
+      const interceptor = new MCPProtocolInterceptor(engine);
       expect(interceptor.type).toBe('mcp-protocol');
     });
   });

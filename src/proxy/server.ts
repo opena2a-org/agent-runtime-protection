@@ -35,7 +35,11 @@ export class ARPProxy {
       this.server = http.createServer((req, res) => {
         this.handleRequest(req, res).catch((err) => {
           const message = err instanceof Error ? err.message : String(err);
-          sendError(res, 502, `Proxy error: ${message}`);
+          const statusCode = message === 'Request body too large' ? 413 : 502;
+          const clientMessage = message === 'Request body too large'
+            ? 'Request body too large'
+            : 'Bad gateway';
+          sendError(res, statusCode, clientMessage);
         });
       });
 
@@ -68,7 +72,7 @@ export class ARPProxy {
     // Find matching upstream
     const upstream = this.findUpstream(url);
     if (!upstream) {
-      sendError(res, 404, `No upstream configured for path: ${url}`);
+      sendError(res, 404, 'Not found');
       return;
     }
 
@@ -84,9 +88,18 @@ export class ARPProxy {
     }
 
     // Strip the pathPrefix from the URL before forwarding
-    const forwardPath = url.startsWith(upstream.pathPrefix)
+    let forwardPath = url.startsWith(upstream.pathPrefix)
       ? url.slice(upstream.pathPrefix.length) || '/'
       : url;
+
+    // Validate forward path is relative (prevent SSRF via absolute URL in path)
+    if (!forwardPath.startsWith('/')) {
+      forwardPath = '/' + forwardPath;
+    }
+    if (/^\/\/|^\/[a-zA-Z]+:/.test(forwardPath)) {
+      sendError(res, 400, 'Bad request');
+      return;
+    }
 
     // Forward to upstream
     const result = await forwardRequest(upstream.target, req, body, forwardPath);

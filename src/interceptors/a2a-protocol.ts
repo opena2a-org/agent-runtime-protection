@@ -40,6 +40,7 @@ export class A2AProtocolInterceptor implements Monitor {
    * @param content - Message content
    */
   scanMessage(from: string, to: string, content: string): ScanResult {
+    if (!this.active) return { detected: false, matches: [] };
     const allMatches: ScanResult['matches'] = [];
 
     // Check trusted agent list

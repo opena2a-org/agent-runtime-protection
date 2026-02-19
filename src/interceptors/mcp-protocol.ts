@@ -36,6 +36,7 @@ export class MCPProtocolInterceptor implements Monitor {
    * Checks tool name against allowlist and scans all parameter values.
    */
   scanToolCall(toolName: string, args: Record<string, unknown>): ScanResult {
+    if (!this.active) return { detected: false, matches: [] };
     // Check tool allowlist
     if (this.allowedTools.size > 0 && !this.allowedTools.has(toolName)) {
       this.engine.emit({

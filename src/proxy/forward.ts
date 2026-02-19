@@ -2,13 +2,26 @@ import * as http from 'http';
 import * as https from 'https';
 import { URL } from 'url';
 
+/** Maximum request/response body size (10 MB) */
+const MAX_BODY_BYTES = 10 * 1024 * 1024;
+
 /**
  * Buffer the full request body from an IncomingMessage.
+ * Rejects with 413 if body exceeds MAX_BODY_BYTES.
  */
 export function bufferBody(req: http.IncomingMessage): Promise<Buffer> {
   return new Promise((resolve, reject) => {
     const chunks: Buffer[] = [];
-    req.on('data', (chunk: Buffer) => chunks.push(chunk));
+    let totalBytes = 0;
+    req.on('data', (chunk: Buffer) => {
+      totalBytes += chunk.length;
+      if (totalBytes > MAX_BODY_BYTES) {
+        req.destroy();
+        reject(new Error('Request body too large'));
+        return;
+      }
+      chunks.push(chunk);
+    });
     req.on('end', () => resolve(Buffer.concat(chunks)));
     req.on('error', reject);
   });
@@ -40,7 +53,16 @@ export function forwardRequest(
 
     const proxyReq = mod.request(options, (proxyRes) => {
       const chunks: Buffer[] = [];
-      proxyRes.on('data', (chunk: Buffer) => chunks.push(chunk));
+      let totalBytes = 0;
+      proxyRes.on('data', (chunk: Buffer) => {
+        totalBytes += chunk.length;
+        if (totalBytes > MAX_BODY_BYTES) {
+          proxyRes.destroy();
+          reject(new Error('Upstream response too large'));
+          return;
+        }
+        chunks.push(chunk);
+      });
       proxyRes.on('end', () => {
         resolve({
           response: proxyRes,
@@ -53,7 +75,7 @@ export function forwardRequest(
     proxyReq.on('error', reject);
     proxyReq.on('timeout', () => {
       proxyReq.destroy();
-      reject(new Error(`Upstream timeout: ${upstream}`));
+      reject(new Error('Upstream request timed out'));
     });
 
     if (body.length > 0) {

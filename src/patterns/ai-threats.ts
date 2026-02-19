@@ -213,6 +213,9 @@ export const PATTERN_SETS = {
   a2aPatterns: [...a2aAttack],
 } as const;
 
+/** Maximum text length to scan (64 KB) — prevents ReDoS on large payloads */
+const MAX_SCAN_LENGTH = 64 * 1024;
+
 /** Scan result from matching */
 export interface ScanResult {
   detected: boolean;
@@ -220,17 +223,22 @@ export interface ScanResult {
     pattern: ThreatPattern;
     matchedText: string;
   }>;
+  /** True if input was truncated before scanning */
+  truncated?: boolean;
 }
 
 /**
  * Scan text against a set of threat patterns.
  * Returns all matches (not just first) for comprehensive reporting.
+ * Input is truncated to MAX_SCAN_LENGTH to prevent ReDoS.
  */
 export function scanText(text: string, patterns: readonly ThreatPattern[]): ScanResult {
+  const truncated = text.length > MAX_SCAN_LENGTH;
+  const scannable = truncated ? text.slice(0, MAX_SCAN_LENGTH) : text;
   const matches: ScanResult['matches'] = [];
 
   for (const pattern of patterns) {
-    const match = pattern.pattern.exec(text);
+    const match = pattern.pattern.exec(scannable);
     if (match) {
       matches.push({
         pattern,
@@ -242,5 +250,6 @@ export function scanText(text: string, patterns: readonly ThreatPattern[]): Scan
   return {
     detected: matches.length > 0,
     matches,
+    truncated,
   };
 }

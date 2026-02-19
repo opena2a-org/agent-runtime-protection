@@ -8,11 +8,12 @@ describe('PromptInterceptor', () => {
   let interceptor: PromptInterceptor;
   let emittedEvents: ARPEvent[];
 
-  beforeEach(() => {
+  beforeEach(async () => {
     engine = new EventEngine({ agentName: 'test-agent' });
     interceptor = new PromptInterceptor(engine);
     emittedEvents = [];
     engine.onEvent((event) => { emittedEvents.push(event); });
+    await interceptor.start();
   });
 
   describe('scanInput', () => {
@@ -88,11 +89,12 @@ describe('PromptInterceptor', () => {
 
   describe('Monitor interface', () => {
     it('starts and stops correctly', async () => {
-      expect(interceptor.isRunning()).toBe(false);
-      await interceptor.start();
-      expect(interceptor.isRunning()).toBe(true);
-      await interceptor.stop();
-      expect(interceptor.isRunning()).toBe(false);
+      const fresh = new PromptInterceptor(engine);
+      expect(fresh.isRunning()).toBe(false);
+      await fresh.start();
+      expect(fresh.isRunning()).toBe(true);
+      await fresh.stop();
+      expect(fresh.isRunning()).toBe(false);
     });
 
     it('reports correct type', () => {
