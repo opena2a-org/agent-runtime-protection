@@ -176,9 +176,14 @@ export class ARPProxy {
         detected = this.inspectOpenAIResponse(bodyStr);
         break;
       }
-      // MCP and A2A responses can also be scanned
-      case 'mcp-http':
-      case 'a2a':
+      case 'mcp-http': {
+        detected = this.inspectMCPResponse(bodyStr);
+        break;
+      }
+      case 'a2a': {
+        detected = this.inspectA2AResponse(bodyStr);
+        break;
+      }
       case 'passthrough':
       default:
         break;
@@ -246,6 +251,55 @@ export class ARPProxy {
           const result = this.deps.mcpInterceptor.scanToolCall(toolName, args);
           return result.detected;
         }
+      }
+
+      return false;
+    } catch {
+      return false;
+    }
+  }
+
+  private inspectMCPResponse(bodyStr: string): boolean {
+    if (!this.deps.promptInterceptor) return false;
+
+    try {
+      const parsed = JSON.parse(bodyStr);
+
+      // JSON-RPC result: { result: { content: [{ type: "text", text: "..." }] } }
+      if (parsed.result?.content && Array.isArray(parsed.result.content)) {
+        let detected = false;
+        for (const part of parsed.result.content) {
+          if (part.type === 'text' && typeof part.text === 'string') {
+            const result = this.deps.promptInterceptor.scanOutput(part.text);
+            if (result.detected) detected = true;
+          }
+        }
+        return detected;
+      }
+
+      // JSON-RPC error: { error: { message: "..." } }
+      if (parsed.error?.message && typeof parsed.error.message === 'string') {
+        const result = this.deps.promptInterceptor.scanOutput(parsed.error.message);
+        return result.detected;
+      }
+
+      return false;
+    } catch {
+      return false;
+    }
+  }
+
+  private inspectA2AResponse(bodyStr: string): boolean {
+    if (!this.deps.promptInterceptor) return false;
+
+    try {
+      const parsed = JSON.parse(bodyStr);
+
+      // A2A response: { content: "..." } or { message: "..." }
+      const content = parsed.content ?? parsed.message ?? '';
+      if (typeof content === 'string' && content) {
+        const result = this.deps.promptInterceptor.scanOutput(content);
+        return result.detected;
       }
 
       return false;
