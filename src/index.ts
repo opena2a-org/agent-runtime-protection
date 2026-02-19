@@ -17,6 +17,9 @@ export type {
   AlertCondition,
   MonitorConfig,
   InterceptorConfig,
+  AILayerConfig,
+  ProxyConfig,
+  ProxyUpstream,
   EnforcementAction,
   EnforcementResult,
   Monitor,
@@ -34,9 +37,14 @@ export { FilesystemMonitor } from './monitors/filesystem';
 export { ProcessInterceptor } from './interceptors/process';
 export { NetworkInterceptor } from './interceptors/network';
 export { FilesystemInterceptor } from './interceptors/filesystem';
+export { PromptInterceptor } from './interceptors/prompt';
+export { MCPProtocolInterceptor } from './interceptors/mcp-protocol';
+export { A2AProtocolInterceptor } from './interceptors/a2a-protocol';
 export { EnforcementEngine, type AlertCallback } from './enforcement/kill-switch';
 export { LocalLogger } from './reporting/local-log';
 export { loadConfig, defaultConfig } from './config/loader';
+export { scanText, PATTERN_SETS, ALL_PATTERNS, type ThreatPattern, type ScanResult } from './patterns/ai-threats';
+export { ARPProxy, type ARPProxyDeps } from './proxy/server';
 
 import * as path from 'path';
 import type { ARPConfig, ARPEvent, Monitor } from './types';
@@ -50,6 +58,9 @@ import { FilesystemMonitor } from './monitors/filesystem';
 import { ProcessInterceptor } from './interceptors/process';
 import { NetworkInterceptor } from './interceptors/network';
 import { FilesystemInterceptor } from './interceptors/filesystem';
+import { PromptInterceptor } from './interceptors/prompt';
+import { MCPProtocolInterceptor } from './interceptors/mcp-protocol';
+import { A2AProtocolInterceptor } from './interceptors/a2a-protocol';
 import { loadConfig } from './config/loader';
 
 /**
@@ -123,6 +134,18 @@ export class AgentRuntimeProtection {
     }
     if (ic?.filesystem?.enabled) {
       this.monitors.push(new FilesystemInterceptor(this.engine, ic.filesystem.allowedPaths, [dataDir]));
+    }
+
+    // Create AI-layer interceptors
+    const al = this.config.aiLayer;
+    if (al?.prompt?.enabled) {
+      this.monitors.push(new PromptInterceptor(this.engine));
+    }
+    if (al?.mcp?.enabled) {
+      this.monitors.push(new MCPProtocolInterceptor(this.engine, al.mcp.allowedTools));
+    }
+    if (al?.a2a?.enabled) {
+      this.monitors.push(new A2AProtocolInterceptor(this.engine, al.a2a.trustedAgents));
     }
   }
 
