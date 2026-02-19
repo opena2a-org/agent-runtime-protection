@@ -14,6 +14,15 @@ Runtime security for AI agents — monitors OS-level activity (processes, networ
 
 ---
 
+## Updates
+
+| Date | Change |
+|------|--------|
+| 2026-02-19 | **v0.2.0** -- AI-layer interceptors (PromptInterceptor, MCPProtocolInterceptor, A2AProtocolInterceptor), HTTP reverse proxy with protocol-aware scanning, 20 built-in threat patterns. |
+| 2026-02-17 | **v0.1.0** -- Initial release with OS-level monitors, application interceptors, 3-layer intelligence stack, YAML config, CLI. |
+
+---
+
 ## Table of Contents
 
 - [Quick Start](#quick-start)
