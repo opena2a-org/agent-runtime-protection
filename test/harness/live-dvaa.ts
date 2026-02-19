@@ -81,6 +81,7 @@ function sendRequest(
       },
     );
     req.on('error', reject);
+    req.on('timeout', () => { req.destroy(); reject(new Error('Request timeout')); });
     req.write(data);
     req.end();
   });
