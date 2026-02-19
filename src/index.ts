@@ -45,6 +45,14 @@ export { LocalLogger } from './reporting/local-log';
 export { loadConfig, defaultConfig } from './config/loader';
 export { scanText, PATTERN_SETS, ALL_PATTERNS, type ThreatPattern, type ScanResult } from './patterns/ai-threats';
 export { ARPProxy, type ARPProxyDeps } from './proxy/server';
+export {
+  checkLicense,
+  hasFeature,
+  registerLicenseValidator,
+  PREMIUM_FEATURES,
+  type LicenseTier,
+  type LicenseInfo,
+} from './license';
 
 import * as path from 'path';
 import type { ARPConfig, ARPEvent, Monitor } from './types';
