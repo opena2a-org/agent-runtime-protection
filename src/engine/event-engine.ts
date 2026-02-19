@@ -196,5 +196,30 @@ function defaultRules(): AlertRule[] {
       action: 'alert',
       requireLlmConfirmation: true,
     },
+    // AI-layer default rules
+    {
+      name: 'prompt-injection-detected',
+      condition: { source: 'prompt', category: 'threat', minSeverity: 'high' },
+      action: 'alert',
+    },
+    {
+      name: 'credential-leak-detected',
+      condition: {
+        source: 'prompt',
+        category: 'threat',
+        fieldMatch: { 'data.patternId': 'OL-001' },
+      },
+      action: 'alert',
+    },
+    {
+      name: 'mcp-exploitation-detected',
+      condition: { source: 'mcp-protocol', category: 'threat', minSeverity: 'high' },
+      action: 'alert',
+    },
+    {
+      name: 'a2a-spoofing-detected',
+      condition: { source: 'a2a-protocol', category: 'threat', minSeverity: 'high' },
+      action: 'alert',
+    },
   ];
 }

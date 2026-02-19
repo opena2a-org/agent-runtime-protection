@@ -9,6 +9,7 @@ import type {
 import { BudgetController } from './budget';
 import { autoDetectAdapter, createAdapter } from './adapters';
 import { AnomalyDetector } from './anomaly';
+import { hasFeature, PREMIUM_FEATURES } from '../license';
 
 const SEVERITY_ORDER: EventSeverity[] = ['info', 'low', 'medium', 'high', 'critical'];
 
@@ -79,6 +80,12 @@ export class IntelligenceCoordinator {
 
     // L2: LLM assessment (only if L1 flagged and budget allows)
     if (this.shouldEscalateToL2(event)) {
+      // AI-layer L2 assessment requires premium license
+      if (AI_LAYER_SOURCES.has(event.source)) {
+        const licensed = await hasFeature(PREMIUM_FEATURES.AI_LAYER_L2);
+        if (!licensed) return null;
+      }
+
       if (this.config.enableBatching && event.severity !== 'critical') {
         return this.queueForBatch(event);
       }
@@ -208,11 +215,19 @@ function buildAgentContext(config: ARPConfig): string {
   return parts.join('\n');
 }
 
+/** AI-layer monitor sources that use specialized prompts */
+const AI_LAYER_SOURCES = new Set(['prompt', 'mcp-protocol', 'a2a-protocol']);
+
 /**
  * Micro-prompt: ~200 tokens in, ~100 tokens out.
  * Designed for speed and cost efficiency. No chain-of-thought.
+ * Uses specialized templates for AI-layer threats.
  */
 function buildMicroPrompt(agentContext: string, event: ARPEvent): string {
+  if (AI_LAYER_SOURCES.has(event.source)) {
+    return buildAILayerPrompt(agentContext, event);
+  }
+
   return `SECURITY ASSESSMENT — answer concisely.
 
 ${agentContext}
@@ -226,6 +241,51 @@ Respond in exactly this format:
 CONSISTENT: YES or NO
 CONFIDENCE: 0.0-1.0
 REASONING: one sentence
+ACTION: ALLOW, ALERT, PAUSE, or KILL`;
+}
+
+/**
+ * Specialized prompt for AI-layer threats (prompt injection, MCP exploitation, A2A spoofing).
+ * Provides the LLM with pattern match context for true/false positive assessment.
+ */
+function buildAILayerPrompt(agentContext: string, event: ARPEvent): string {
+  const data = event.data;
+  const patternId = data.patternId ?? 'unknown';
+  const patternCategory = data.patternCategory ?? event.source;
+  const matchedText = data.matchedText ?? '';
+  const direction = data.direction ?? '';
+
+  let contentContext = '';
+  if (event.source === 'prompt') {
+    contentContext = direction === 'input'
+      ? `User/agent sent input that matched pattern ${patternId} (${patternCategory}).`
+      : `LLM response matched output leak pattern ${patternId} (${patternCategory}).`;
+  } else if (event.source === 'mcp-protocol') {
+    const toolName = data.toolName ?? 'unknown';
+    contentContext = `MCP tool call "${toolName}" has parameters matching exploitation pattern ${patternId}.`;
+  } else if (event.source === 'a2a-protocol') {
+    const from = data.from ?? 'unknown';
+    const to = data.to ?? 'unknown';
+    contentContext = `A2A message from "${from}" to "${to}" matched attack pattern ${patternId}.`;
+  }
+
+  return `AI-LAYER THREAT ASSESSMENT — determine if this is a true positive or false positive.
+
+${agentContext}
+
+Detection: ${event.description}
+Context: ${contentContext}
+Matched text: "${String(matchedText).slice(0, 300)}"
+Pattern: ${patternId} — ${patternCategory}
+Severity: ${event.severity}
+
+Could this be legitimate usage given the agent's purpose, or is this a genuine attack attempt?
+Consider: obfuscation techniques, benign edge cases, and the agent's declared capabilities.
+
+Respond in exactly this format:
+CONSISTENT: YES (benign/false positive) or NO (genuine threat)
+CONFIDENCE: 0.0-1.0
+REASONING: one sentence explaining why
 ACTION: ALLOW, ALERT, PAUSE, or KILL`;
 }
 

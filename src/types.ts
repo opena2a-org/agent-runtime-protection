@@ -22,7 +22,7 @@ export interface ARPEvent {
   llmAssessment?: LLMAssessment;
 }
 
-export type MonitorType = 'process' | 'network' | 'filesystem' | 'skill' | 'heartbeat';
+export type MonitorType = 'process' | 'network' | 'filesystem' | 'skill' | 'heartbeat' | 'prompt' | 'mcp-protocol' | 'a2a-protocol';
 export type EventCategory = 'normal' | 'anomaly' | 'violation' | 'threat';
 export type EventSeverity = 'info' | 'low' | 'medium' | 'high' | 'critical';
 
@@ -61,6 +61,10 @@ export interface ARPConfig {
   intelligence?: IntelligenceConfig;
   /** Application-level interceptors (zero-latency, 100% accuracy) */
   interceptors?: InterceptorConfig;
+  /** AI-layer protection (prompt, MCP, A2A scanning) */
+  aiLayer?: AILayerConfig;
+  /** HTTP reverse proxy configuration */
+  proxy?: ProxyConfig;
 }
 
 export interface MonitorConfig {
@@ -181,6 +185,37 @@ export interface EnforcementResult {
   success: boolean;
   reason: string;
   event: ARPEvent;
+}
+
+// --- AI-Layer Configuration ---
+
+export interface AILayerConfig {
+  /** Prompt scanning (injection, jailbreak, data leak detection) */
+  prompt?: { enabled: boolean };
+  /** MCP protocol scanning (parameter injection, path traversal, SSRF) */
+  mcp?: { enabled: boolean; allowedTools?: string[] };
+  /** A2A protocol scanning (identity spoofing, delegation abuse) */
+  a2a?: { enabled: boolean; trustedAgents?: string[] };
+}
+
+// --- Proxy Configuration ---
+
+export interface ProxyConfig {
+  /** Port to listen on */
+  port: number;
+  /** Upstream targets */
+  upstreams: ProxyUpstream[];
+  /** Block requests on detection (default: false, alert only) */
+  blockOnDetection?: boolean;
+}
+
+export interface ProxyUpstream {
+  /** Path prefix to route (e.g., '/openai', '/mcp', '/a2a') */
+  pathPrefix: string;
+  /** Upstream target URL (e.g., 'http://localhost:3003') */
+  target: string;
+  /** Protocol hint for request/response parsing */
+  protocol: 'openai-api' | 'mcp-http' | 'a2a' | 'passthrough';
 }
 
 // --- Monitor Interface ---
