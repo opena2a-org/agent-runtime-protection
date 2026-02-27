@@ -10,7 +10,7 @@
 
 Runtime security for AI agents — monitors OS-level activity (processes, network, filesystem) and AI-layer traffic (prompts, MCP tool calls, A2A messages) with 20 built-in threat detection patterns and an HTTP reverse proxy for protocol-aware scanning.
 
-[OASB Benchmark](https://github.com/opena2a-org/oasb) | [MITRE ATLAS Mapping](#mitre-atlas-mapping)
+[MITRE ATLAS Mapping](#mitre-atlas-mapping)
 
 ---
 
