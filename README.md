@@ -2,6 +2,8 @@
 
 # ARP — Agent Runtime Protection
 
+> **Note:** ARP is now included in [HackMyAgent](https://github.com/opena2a-org/hackmyagent) v0.8.0+. Install `hackmyagent` and import from `hackmyagent/arp`. This repository remains as a reference. The `@opena2a/arp` npm package will continue to work but is no longer updated separately.
+
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![npm](https://img.shields.io/npm/v/@opena2a/arp)](https://www.npmjs.com/package/@opena2a/arp)
 [![Tests](https://img.shields.io/badge/tests-115%20passing-brightgreen)](https://github.com/opena2a-org/arp)
@@ -554,6 +556,6 @@ Apache-2.0
 |---------|-------------|---------|
 | [**AIM**](https://github.com/opena2a-org/agent-identity-management) | Agent Identity Management -- identity and access control for AI agents | `pip install aim-sdk` |
 | [**HackMyAgent**](https://github.com/opena2a-org/hackmyagent) | Security scanner -- 147 checks, attack mode, auto-fix | `npx hackmyagent secure` |
-| [**OASB**](https://github.com/opena2a-org/oasb) | Open Agent Security Benchmark -- 182 attack scenarios | `npm install @opena2a/oasb` |
+| [**OASB**](https://github.com/opena2a-org/oasb) | Open Agent Security Benchmark -- 222 attack scenarios | Included in `hackmyagent` |
 | [**Secretless AI**](https://github.com/opena2a-org/secretless-ai) | Keep credentials out of AI context windows | `npx secretless-ai init` |
 | [**DVAA**](https://github.com/opena2a-org/damn-vulnerable-ai-agent) | Damn Vulnerable AI Agent -- security training and red-teaming | `docker pull opena2a/dvaa` |
