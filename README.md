@@ -26,6 +26,7 @@ Runtime security for AI agents — monitors OS-level activity (processes, networ
 ## Table of Contents
 
 - [Quick Start](#quick-start)
+- [Usage via OpenA2A CLI](#usage-via-opena2a-cli)
 - [HTTP Proxy Mode](#http-proxy-mode)
 - [AI-Layer Interceptors](#ai-layer-interceptors)
 - [Architecture](#architecture)
@@ -109,6 +110,113 @@ if (outputResult.detected) {
   console.warn('Data leak detected in response');
 }
 ```
+
+---
+
+## Usage via OpenA2A CLI
+
+ARP integrates with the [OpenA2A CLI](https://github.com/opena2a-org/opena2a) through the `opena2a runtime` command group. The CLI acts as a unified interface to ARP, handling configuration generation, process lifecycle, and event streaming without requiring direct use of the `arp-guard` binary.
+
+Install the CLI:
+
+```bash
+npm install -g @opena2a/cli
+```
+
+### Initialize Configuration
+
+Generate an `arp.yaml` config file tailored to your project. The CLI inspects your project structure (package.json, Dockerfile, .env files, etc.) to produce sensible defaults for monitors, interceptors, and rules.
+
+```bash
+opena2a runtime init
+```
+
+This creates an `arp.yaml` in your project root with auto-detected settings for:
+
+- Allowed network hosts (based on existing API integrations)
+- Filesystem watch paths (based on data directories)
+- AI-layer interceptors (enabled if MCP or A2A dependencies are detected)
+- Default enforcement rules (alert-only mode)
+
+You can then customize the generated file before starting the runtime.
+
+### Start Runtime Monitoring
+
+Start ARP monitors and interceptors using your project configuration:
+
+```bash
+opena2a runtime start
+```
+
+This launches ARP in the background with the configuration from `arp.yaml` (or the path specified via `--config`). The process monitors OS-level activity and AI-layer traffic according to your rules.
+
+Options:
+
+| Flag | Description |
+|------|-------------|
+| `--config <path>` | Path to config file (default: auto-discovered `arp.yaml`) |
+| `--proxy` | Also start the HTTP reverse proxy |
+| `--foreground` | Run in the foreground instead of daemonizing |
+
+### Check Runtime Status
+
+View the current state of all monitors, interceptors, and the proxy (if running):
+
+```bash
+opena2a runtime status
+```
+
+Example output:
+
+```
+ARP Runtime Status
+  Agent: my-agent
+  Uptime: 2h 14m
+  PID: 48201
+
+Monitors:
+  process     running   5s interval   42 events
+  network     running   10s interval  18 events
+  filesystem  running   watching 3 paths
+
+Interceptors:
+  process     active    12 intercepts
+  network     active    8 intercepts
+  filesystem  active    3 intercepts
+
+AI Layer:
+  prompt      active    156 scans   2 detections
+  mcp         active    34 scans    0 detections
+  a2a         inactive
+
+Proxy: not running
+```
+
+### Tail Security Events
+
+Stream recent security events from the running ARP instance:
+
+```bash
+opena2a runtime tail
+```
+
+By default this shows the 20 most recent events and continues streaming new events in real time. Use `--lines <n>` to change the initial count, or `--severity <level>` to filter by minimum severity.
+
+```bash
+opena2a runtime tail --lines 50 --severity high
+```
+
+### Comparison: Direct CLI vs OpenA2A CLI
+
+| Task | Direct (`arp-guard`) | OpenA2A CLI (`opena2a runtime`) |
+|------|---------------------|---------------------------------|
+| Generate config | Manual | `opena2a runtime init` (auto-detected) |
+| Start monitoring | `npx arp-guard start` | `opena2a runtime start` |
+| Check status | `npx arp-guard status` | `opena2a runtime status` |
+| View events | `npx arp-guard tail 20` | `opena2a runtime tail` |
+| Start proxy | `npx arp-guard proxy` | `opena2a runtime start --proxy` |
+
+The OpenA2A CLI wraps `arp-guard` and adds project-aware configuration generation, consistent command structure across all OpenA2A tools, and integration with the broader OpenA2A ecosystem (AIM identity, Secretless credentials, OASB benchmarks).
 
 ---
 
@@ -447,6 +555,5 @@ Apache-2.0
 | [**AIM**](https://github.com/opena2a-org/agent-identity-management) | Agent Identity Management -- identity and access control for AI agents | `pip install aim-sdk` |
 | [**HackMyAgent**](https://github.com/opena2a-org/hackmyagent) | Security scanner -- 147 checks, attack mode, auto-fix | `npx hackmyagent secure` |
 | [**OASB**](https://github.com/opena2a-org/oasb) | Open Agent Security Benchmark -- 182 attack scenarios | `npm install @opena2a/oasb` |
-| [**ARP**](https://github.com/opena2a-org/arp) | Agent Runtime Protection -- process, network, filesystem monitoring | `npm install @opena2a/arp` |
 | [**Secretless AI**](https://github.com/opena2a-org/secretless-ai) | Keep credentials out of AI context windows | `npx secretless-ai init` |
 | [**DVAA**](https://github.com/opena2a-org/damn-vulnerable-ai-agent) | Damn Vulnerable AI Agent -- security training and red-teaming | `docker pull opena2a/dvaa` |
