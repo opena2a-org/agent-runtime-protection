@@ -1,12 +1,9 @@
 {
-  "name": "@opena2a/arp",
-  "version": "0.2.0",
+  "name": "arp-guard",
+  "version": "0.3.0",
   "description": "Agent Runtime Protection — LLM-assisted behavioral monitoring, anomaly detection, and enforcement for AI agents.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "bin": {
-    "arp-guard": "dist/cli/index.js"
-  },
   "files": [
     "dist",
     "README.md",
@@ -14,50 +11,37 @@
   ],
   "scripts": {
     "build": "tsc",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "dev": "tsc --watch",
-    "lint": "eslint src --ext .ts",
-    "clean": "rm -rf dist"
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "js-yaml": "^4.1.1"
-  },
-  "peerDependencies": {
-    "@opena2a/aim-core": ">=0.1.0"
-  },
-  "peerDependenciesMeta": {
-    "@opena2a/aim-core": {
-      "optional": true
-    }
+    "hackmyagent": ">=0.11.0"
   },
   "devDependencies": {
-    "@types/js-yaml": "^4.0.9",
-    "@types/node": "^20.0.0",
-    "typescript": "^5.3.3",
-    "vitest": "^3.0.0"
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   },
   "keywords": [
     "ai",
     "agent",
     "security",
-    "runtime",
-    "protection",
+    "runtime-protection",
     "monitoring",
-    "edr",
-    "opena2a"
+    "anomaly-detection",
+    "enforcement",
+    "opena2a",
+    "arp"
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/opena2a-org/arp.git"
+    "url": "https://github.com/opena2a-org/hackmyagent.git",
+    "directory": "src/arp"
   },
-  "homepage": "https://github.com/opena2a-org/arp",
+  "homepage": "https://github.com/opena2a-org/hackmyagent#agent-runtime-protection",
   "bugs": {
-    "url": "https://github.com/opena2a-org/arp/issues"
+    "url": "https://github.com/opena2a-org/hackmyagent/issues"
   },
   "author": "OpenA2A",
-  "license": "Apache-2.0",
-  "engines": {
-    "node": ">=18.0.0"
-  }
+  "license": "Apache-2.0"
 }
