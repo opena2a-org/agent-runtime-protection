@@ -2,6 +2,7 @@
 
 # arp-guard — Agent Runtime Protection
 
+[![Status: beta](https://img.shields.io/badge/status-beta-yellow)](./STATUS.md)
 [![npm](https://img.shields.io/npm/v/arp-guard)](https://www.npmjs.com/package/arp-guard)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![OASB](https://img.shields.io/badge/OASB-222%20tests%20passing-brightgreen)](https://github.com/opena2a-org/oasb)
