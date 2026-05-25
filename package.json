@@ -11,6 +11,8 @@
   ],
   "scripts": {
     "build": "tsc",
+    "lint": "tsc --noEmit",
+    "test": "echo 'no unit tests yet' && exit 0",
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
