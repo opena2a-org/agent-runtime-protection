@@ -84,7 +84,8 @@ jobs:
         run: npm ci
 
       - name: Run eslint security plugin
-        run: npx eslint src --ext .ts --no-eslintrc --rule '{"no-eval": "error", "no-implied-eval": "error"}' || true
+        run: |
+          npx eslint src --ext .ts --no-eslintrc --rule '{"no-eval": "error", "no-implied-eval": "error"}' || true
         continue-on-error: true
 
   license-check:
