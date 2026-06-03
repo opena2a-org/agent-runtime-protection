@@ -5,7 +5,7 @@
 [![Status: beta](https://img.shields.io/badge/status-beta-yellow)](./STATUS.md)
 [![npm](https://img.shields.io/npm/v/arp-guard)](https://www.npmjs.com/package/arp-guard)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![OASB](https://img.shields.io/badge/OASB-222%20tests%20passing-brightgreen)](https://github.com/opena2a-org/oasb)
+[![OASB](https://img.shields.io/badge/OASB-222%20scenarios%20passing-brightgreen)](https://github.com/opena2a-org/oasb)
 
 3-layer intelligent runtime protection for AI agents. Monitors processes, network, filesystem, and AI-layer communications (prompts, MCP tool calls, A2A messages) with rule-based, statistical, and LLM-assisted threat detection.
 
@@ -40,7 +40,7 @@ if (result.detected) {
 }
 ```
 
-Detects prompt injection, jailbreaks, data exfiltration, MCP exploitation, and A2A identity spoofing across 19 pattern categories.
+Detects prompt injection, jailbreaks, data exfiltration, MCP exploitation, and A2A identity spoofing across 19 patterns in 7 categories.
 
 ## Intelligence Stack
 
