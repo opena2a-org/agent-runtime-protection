@@ -50,7 +50,14 @@ jobs:
           echo "" > /tmp/full_files.txt
           TOTAL_SIZE=0
           MAX_FULL_SIZE=200000
-          while IFS= read -r file; do
+          # The list is read on fd 3 and nl reads through a stdin redirect. A changed
+          # file literally named '-' is an operand nl treats as STANDARD INPUT, and the
+          # loop's stdin is this very list -- so `nl -ba "$file"` consumed the remaining
+          # filenames, printed them where that file's source belonged, and ended the loop
+          # early. Every file after it lost its source silently, while the prompt still
+          # told the reviewer to verify mitigations against source it no longer had.
+          # `--` does not help: it ends option parsing, but '-' still means stdin.
+          while IFS= read -r file <&3; do
             case "$file" in
               *.test.* | *.spec.* | package-lock.json | *.lock) continue ;;
             esac
@@ -63,8 +70,8 @@ jobs:
             fi
             TOTAL_SIZE=$NEW_TOTAL
             printf '\n=== %s ===\n' "$file" >> /tmp/full_files.txt
-            nl -ba "$file" >> /tmp/full_files.txt
-          done < /tmp/changed_files.txt
+            nl -ba < "$file" >> /tmp/full_files.txt
+          done 3< /tmp/changed_files.txt
 
           # This job now comments instead of submitting reviews, so the previous
           # pass is read from issue comments. Restricted to the bot's own
