@@ -1,11 +1,11 @@
-> **[OpenA2A](https://github.com/opena2a-org/opena2a)**: [Secretless](https://github.com/opena2a-org/secretless-ai) · [HackMyAgent](https://github.com/opena2a-org/hackmyagent) · [ABG](https://github.com/opena2a-org/AI-BrowserGuard) · [AIM](https://github.com/opena2a-org/agent-identity-management) · [ARP](https://github.com/opena2a-org/hackmyagent#agent-runtime-protection) · [DVAA](https://github.com/opena2a-org/damn-vulnerable-ai-agent)
+> **[OpenA2A](https://github.com/opena2a-org/opena2a)**: [Secretless](https://github.com/opena2a-org/secretless-ai) · [HackMyAgent](https://github.com/opena2a-org/hackmyagent) · [ABG](https://github.com/opena2a-org/AI-BrowserGuard) · [AIM](https://github.com/opena2a-org/agent-identity-management) · [ARP](https://github.com/opena2a-org/agent-runtime-protection) · [DVAA](https://github.com/opena2a-org/damn-vulnerable-ai-agent)
 
 # arp-guard — Agent Runtime Protection
 
 [![Status: beta](https://img.shields.io/badge/status-beta-yellow)](./STATUS.md)
 [![npm](https://img.shields.io/npm/v/arp-guard)](https://www.npmjs.com/package/arp-guard)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![OASB](https://img.shields.io/badge/OASB-222%20scenarios%20passing-brightgreen)](https://github.com/opena2a-org/oasb)
+[![OASB](https://img.shields.io/badge/OASB-reference%20adapter-blue)](https://github.com/opena2a-org/oasb)
 
 3-layer intelligent runtime protection for AI agents. Monitors processes, network, filesystem, and AI-layer communications (prompts, MCP tool calls, A2A messages) with rule-based, statistical, and LLM-assisted threat detection.
 
@@ -40,7 +40,7 @@ if (result.detected) {
 }
 ```
 
-Detects prompt injection, jailbreaks, data exfiltration, MCP exploitation, and A2A identity spoofing across 19 patterns in 7 categories.
+Detects prompt injection, jailbreaks, data exfiltration, MCP exploitation, and A2A identity spoofing across 20 patterns in 7 categories.
 
 ## Intelligence Stack
 
@@ -50,15 +50,40 @@ Detects prompt injection, jailbreaks, data exfiltration, MCP exploitation, and A
 | L1: Statistical | Free | Z-score anomaly detection |
 | L2: LLM-Assisted | Budget-controlled | Micro-prompts for ambiguous events |
 
-99% of events resolve at L0/L1. Default L2 budget: $5/month.
+L2 runs only when L1 flags an event, its severity is at or above
+`intelligence.minSeverityForLlm` (default `medium`), and the budget allows it. Default
+budget: $5/month (`intelligence.budgetUsd`).
+
+L2 is on by default, and the default adapter picks its destination from the environment:
+`ANTHROPIC_API_KEY` if set, otherwise `OPENAI_API_KEY`, otherwise a local Ollama at
+`localhost:11434`. On a machine that already exports a model key, qualifying events are
+sent to that vendor with the agent context and the event, which for a process event
+includes the command line. Set `intelligence.enabled: false` to run on L0 and L1 alone
+with no outbound calls, or `intelligence.adapter: ollama` to keep inference local.
 
 ## Architecture
 
-This package re-exports ARP from [HackMyAgent](https://github.com/opena2a-org/hackmyagent). All implementation lives in `hackmyagent/src/arp/`. Use this package when you want ARP as a standalone dependency without importing HackMyAgent directly.
+The runtime engine lives in the AIM agent-side SDK, at `@opena2a/aim-sdk/arp`. The
+product boundary is by time: scan at rest with HackMyAgent, protect at runtime with ARP.
+
+This package re-exports that module. It currently reaches it through
+[HackMyAgent](https://github.com/opena2a-org/hackmyagent), which re-exports the SDK in
+turn, so installing `arp-guard` also installs the scanner and its model runtime. If you
+want the engine without that, depend on `@opena2a/aim-sdk` and import from
+`@opena2a/aim-sdk/arp` directly.
 
 ## Benchmark
 
-Evaluated by [OASB](https://github.com/opena2a-org/oasb) — 222 standardized attack scenarios mapped to MITRE ATLAS. 100% detection coverage on the current test suite.
+[OASB](https://github.com/opena2a-org/oasb) is a suite of 222 standardized attack scenarios
+mapped to MITRE ATLAS, and it ships ARP as its reference adapter.
+
+Two caveats on that number, both verifiable from a clean checkout:
+
+- OASB's own suite skips `E2E-003` (live network detection) pending a reliable
+  cross-platform check, so network detection is not covered by the passing count.
+- The suite resolves ARP through an older `hackmyagent` that carries its own
+  pre-migration copy of the runtime engine. Re-point it at `@opena2a/aim-sdk/arp`
+  before reading the result as coverage of what this package ships today.
 
 ## License
 
