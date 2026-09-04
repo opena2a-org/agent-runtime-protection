@@ -1,13 +1,13 @@
-> **[OpenA2A](https://github.com/opena2a-org/opena2a)**: [Secretless](https://github.com/opena2a-org/secretless-ai) · [HackMyAgent](https://github.com/opena2a-org/hackmyagent) · [ABG](https://github.com/opena2a-org/AI-BrowserGuard) · [AIM](https://github.com/opena2a-org/agent-identity-management) · [ARP](https://github.com/opena2a-org/agent-runtime-protection) · [DVAA](https://github.com/opena2a-org/damn-vulnerable-ai-agent)
+> **[OpenA2A](https://github.com/opena2a-org/opena2a)**: [Secretless](https://github.com/opena2a-org/secretless-ai) · [HackMyAgent](https://github.com/opena2a-org/hackmyagent) · [ABG](https://github.com/opena2a-org/AI-BrowserGuard) · [AIM](https://github.com/opena2a-org/agent-identity-management) · [ARP](https://github.com/opena2a-org/arp-guard) · [DVAA](https://github.com/opena2a-org/damn-vulnerable-ai-agent)
 
-# arp-guard — Agent Runtime Protection
+# arp-guard — AI Runtime Protection
 
 [![Status: beta](https://img.shields.io/badge/status-beta-yellow)](./STATUS.md)
 [![npm](https://img.shields.io/npm/v/arp-guard)](https://www.npmjs.com/package/arp-guard)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![OASB](https://img.shields.io/badge/OASB-reference%20adapter-blue)](https://github.com/opena2a-org/oasb)
 
-3-layer intelligent runtime protection for AI agents. Monitors processes, network, filesystem, and AI-layer communications (prompts, MCP tool calls, A2A messages) with rule-based, statistical, and LLM-assisted threat detection.
+EDR for AI agents. Monitors agent processes, network, filesystem and AI-layer traffic — prompts, MCP tool calls, A2A messages — then detects and enforces, across three layers: rule-based, statistical, and LLM-assisted.
 
 ## Install
 

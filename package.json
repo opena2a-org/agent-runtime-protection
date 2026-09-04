@@ -1,7 +1,7 @@
 {
   "name": "arp-guard",
   "version": "0.4.0",
-  "description": "Agent Runtime Protection — LLM-assisted behavioral monitoring, anomaly detection, and enforcement for AI agents.",
+  "description": "AI Runtime Protection \u2014 EDR for AI agents: runtime monitoring, detection and enforcement across agent processes, network, filesystem, and AI-layer traffic.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -37,11 +37,11 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/opena2a-org/agent-runtime-protection.git"
+    "url": "https://github.com/opena2a-org/arp-guard.git"
   },
-  "homepage": "https://github.com/opena2a-org/agent-runtime-protection#readme",
+  "homepage": "https://github.com/opena2a-org/arp-guard#readme",
   "bugs": {
-    "url": "https://github.com/opena2a-org/agent-runtime-protection/issues"
+    "url": "https://github.com/opena2a-org/arp-guard/issues"
   },
   "author": "OpenA2A",
   "license": "Apache-2.0"
