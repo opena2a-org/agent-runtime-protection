@@ -66,11 +66,10 @@ with no outbound calls, or `intelligence.adapter: ollama` to keep inference loca
 The runtime engine lives in the AIM agent-side SDK, at `@opena2a/aim-sdk/arp`. The
 product boundary is by time: scan at rest with HackMyAgent, protect at runtime with ARP.
 
-This package re-exports that module. It currently reaches it through
-[HackMyAgent](https://github.com/opena2a-org/hackmyagent), which re-exports the SDK in
-turn, so installing `arp-guard` also installs the scanner and its model runtime. If you
-want the engine without that, depend on `@opena2a/aim-sdk` and import from
-`@opena2a/aim-sdk/arp` directly.
+This package re-exports that module directly, on an exact SDK pin, so installing
+`arp-guard` no longer pulls in the scanner or its model runtime. Importing
+`@opena2a/aim-sdk/arp` yourself gets you the same engine; use this package when you want
+ARP as a standalone dependency.
 
 ## Benchmark
 
